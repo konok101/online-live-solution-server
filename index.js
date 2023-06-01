@@ -34,6 +34,7 @@ async function run() {
     console.log("DB connected Successfully");
     const database = client.db('educationalLiveSolu');
 
+    const usersCollection = database.collection('users');
     const reviewCollection = database.collection('review');
 
     app.post('/review', async (req, res) => {
@@ -42,6 +43,58 @@ async function run() {
       res.json(store);
     });
 
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      console.log(result);
+      res.json(result);
+    });
+
+    app.put('/users', async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await usersCollection.updateOne(filter, updateDoc, options);
+      res.json(result);
+    });
+
+    app.get('/users', async (req, res) => {
+      const users = await usersCollection.find().toArray();
+      res.send(users);
+    });
+
+    app.get('/users/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === 'admin') {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
+
+    app.get('/users/doctor/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isTeacher = false;
+      if (user?.role === 'teacher') {
+        isTeacher = true;
+      }
+      res.json({ teacher: isTeacher });
+    });
+
+    app.put('/users/admin/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+
+      console.log(filter);
+      const updateDoc = { $set: { role: 'admin' } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.json(result);
+    });
 
 
 
