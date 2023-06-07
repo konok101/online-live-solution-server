@@ -56,7 +56,10 @@ async function run() {
       const store = await reviewCollection.insertOne(data);
       res.json(store);
     });
-
+    app.get('/review', async (req, res) => {
+      const store = await reviewCollection.find().toArray();
+      res.send(store);
+    });
     app.post('/users', async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
