@@ -16,14 +16,30 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5qcqebt.mongodb.net/?retryWrites=true&w=majority`;
 
 
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1, });
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
+// const client = new MongoClient(uri, {
+//   serverApi: {
+//     version: ServerApiVersion.v1,
+//     strict: true,
+//     deprecationErrors: true,
+//   }
+// });
+
+async function verifyToken(req, res, next) {
+  if (req.headers?.authorization?.startsWith('Bearer ')) {
+    const token = req.headers.authorization.split(' ')[1];
+
+    try {
+      const decodedUser = await admin.auth().verifyIdToken(token);
+      req.decodedEmail = decodedUser.email;
+    }
+    catch {
+
+    }
   }
-});
+  next();
+}
 
 async function run() {
   try {
@@ -47,6 +63,68 @@ async function run() {
       console.log(result);
       res.json(result);
     });
+
+
+    app.put('/users', async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await usersCollection.updateOne(filter, updateDoc, options);
+      res.json(result);
+    });
+
+    app.get('/users', async (req, res) => {
+      const users = await usersCollection.find().toArray();
+      res.send(users);
+    });
+
+
+    app.get('/users/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === 'admin') {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
+
+    app.put('/users/admin/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+
+      console.log(filter);
+      const updateDoc = { $set: { role: 'admin' } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.json(result);
+    });
+
+    app.delete('/users/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const result = await usersCollection.deleteOne(filter);
+      res.json(result);
+    });
+
+
+    app.put('/users/addTeacher', async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const updateDoc = { $set: { role: 'teacher' } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.json(result);
+  });
+
+
+
+
+
+
+
+
+
 
     // app.put('/users', async (req, res) => {
     //   const user = req.body;
@@ -116,7 +194,7 @@ run().catch(console.dir);
 
 
 app.get('/', async(req, res) => {
-  res.send('Hello Worlddddddddddddddd!')
+  res.send('Educational Live Solu id Here!')
 })
 
 app.listen(port, () => {
