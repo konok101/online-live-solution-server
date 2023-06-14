@@ -44,6 +44,39 @@ async function run() {
     const usersCollection = database.collection('users');
     const reviewCollection = database.collection('review');
     const courseCollection = database.collection('course');
+  const addCourseCollection = database.collection("addCourse");
+
+  app.post('/selectedByDate', (req, res) => {
+    const date = req.body;
+    console.log(date.date); 
+    courseCollection.find({date: date.date})
+            .toArray((err, documents) => {
+                res.send(documents);
+            })
+         }) 
+
+
+
+  app.post('/addCourse', (req, res) => {
+    const teacher = req.body;
+    console.log(teacher);
+    addCourseCollection.insertOne(teacher)
+        .then(result => {
+            res.send(result.insertedCount > 0)
+        })
+  });
+
+/*   app.get('/addCourse', (req, res) => {
+    addCourseCollection.find({})
+        .toArray((err, documents) => {
+            res.send(documents);
+        })
+    }) */
+    app.get('/addCourse', async (req, res) => {
+      const store = await addCourseCollection.find().toArray();
+      res.send(store);
+    });
+
 
     app.post('/review', async (req, res) => {
       const data = req.body;
@@ -113,6 +146,18 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.json(result);
   });
+
+
+  app.get('/users/teacher/:email', async (req, res) => {
+    const email = req.params.email;
+    const query = { email: email };
+    const user = await usersCollection.findOne(query);
+    let isTeacher = false;
+    if (user?.role === 'teacher') {
+        isTeacher = true;
+    }
+    res.json({ teacher: isTeacher });
+});
 
   app.post('/courseSubmit', async (req, res) => {
     const data = req.body;
