@@ -46,15 +46,6 @@ async function run() {
     const courseCollection = database.collection('course');
   const addCourseCollection = database.collection("addCourse");
 
-  app.post('/selectedByDate', (req, res) => {
-    const date = req.body;
-    console.log(date.date); 
-    courseCollection.find({date: date.date})
-            .toArray((err, documents) => {
-                res.send(documents);
-            })
-         }) 
-
 
 
   app.post('/addCourse', (req, res) => {
@@ -66,6 +57,13 @@ async function run() {
         })
   });
 
+  app.get('/myCourse', async(req, res)=>{
+    const email = req.query.email;
+    const query= {email: email};
+    const cursor= courseCollection.find(query);
+    const orders = await cursor.toArray();
+    res.send(orders)
+  })
 /*   app.get('/addCourse', (req, res) => {
     addCourseCollection.find({})
         .toArray((err, documents) => {
