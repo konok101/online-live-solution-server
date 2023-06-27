@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express()
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 // middleware
@@ -10,14 +10,19 @@ app.use(cors());
 app.use(express.json());
 
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6df8qc8.mongodb.net/?retryWrites=true&w=majority`;
- const client = new MongoClient(uri, {
+/* const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6df8qc8.mongodb.net/?retryWrites=true&w=majority`;
+ */
+
+const uri = "mongodb+srv://konok1512101:27oJABqw0GPlfy7A@cluster0.dueuu8r.mongodb.net/?retryWrites=true&w=majority";
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
   }
 });
+
  
 async function verifyToken(req, res, next) {
   if (req.headers?.authorization?.startsWith('Bearer ')) {
@@ -43,8 +48,11 @@ async function run() {
 
     const usersCollection = database.collection('users');
     const reviewCollection = database.collection('review');
-    const courseCollection = database.collection('course');
+    const courseCollection = database.collection('myCourse');
   const addCourseCollection = database.collection("addCourse");
+  const applyForTeacherCollection = database.collection("applyForTeacher");
+  const ContactCollection = database.collection('contact');
+
 
 
 
@@ -73,6 +81,12 @@ async function run() {
     app.get('/addCourse', async (req, res) => {
       const store = await addCourseCollection.find().toArray();
       res.send(store);
+    });
+
+    app.post('/contact', async (req, res) => {
+      const data = req.body;
+      const store = await ContactCollection.insertOne(data);
+      res.json(store);
     });
 
 
@@ -157,6 +171,16 @@ async function run() {
     res.json({ teacher: isTeacher });
 });
 
+
+app.post('/applyForTeacher', (req, res) => {
+  const teacher = req.body;
+  applyForTeacherCollection.insertOne(teacher)
+      .then(result => {
+          res.send(result.insertedCount > 0)
+      })
+});
+
+
   app.post('/courseSubmit', async (req, res) => {
     const data = req.body;
     const store = await courseCollection.insertOne(data);
@@ -166,13 +190,25 @@ async function run() {
     const store = await courseCollection.find().toArray();
     res.send(store);
   });
-  app.delete('/courseSubmit/:email', verifyToken, async (req, res) => {
-    const email = req.params.email;
-    const filter = { email: email };
-    const result = await courseCollection.deleteOne(filter);
-    res.json(result);
+  app.delete('/myCourse/:id', verifyToken, async (req, res) => {
+    const id = req.params.id;
+    const query= { _id: new ObjectId(id) };
+    const result = await courseCollection.deleteOne(query);
+    res.send(result);
   });
 
+  app.put('/myCourse/:id', verifyToken, async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+
+    console.log(filter);
+    const updateDoc = { $set: { approveData: 'approve' } };
+    const result = await courseCollection.updateOne(filter, updateDoc);
+    console.log('result', result)
+    res.send(result);
+  });
+
+  
 
 
 
