@@ -52,9 +52,10 @@ async function run() {
   const addCourseCollection = database.collection("addCourse");
   const applyForTeacherCollection = database.collection("applyForTeacher");
   const ContactCollection = database.collection('contact');
+  const  ratingCollection = database.collection('rating');
 
 
-
+ 
 
   app.post('/addCourse', (req, res) => {
     const teacher = req.body;
@@ -65,13 +66,8 @@ async function run() {
         })
   });
 
-  app.get('/myCourse', async(req, res)=>{
-    const email = req.query.email;
-    const query= {email: email};
-    const cursor= courseCollection.find(query);
-    const orders = await cursor.toArray();
-    res.send(orders)
-  })
+ 
+ 
 /*   app.get('/addCourse', (req, res) => {
     addCourseCollection.find({})
         .toArray((err, documents) => {
@@ -208,6 +204,16 @@ app.post('/applyForTeacher', (req, res) => {
     res.send(result);
   });
 
+  app.post('/courseRating', async (req, res) => {
+    const data = req.body;
+    const store = await ratingCollection.insertOne(data);
+    res.json(store);
+  });
+
+  app.get('/courseRating', async (req, res) => {
+    const store = await ratingCollection.find().toArray();
+    res.send(store);
+  });
   
 
 
