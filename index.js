@@ -66,7 +66,14 @@ async function run() {
         })
   });
 
- 
+  app.get('/myCourse', async(req, res)=>{
+    const email = req.query.email;
+    const query= {email: email};
+    const cursor= courseCollection.find(query);
+    const orders = await cursor.toArray();
+    res.send(orders)
+  })
+
  
 /*   app.get('/addCourse', (req, res) => {
     addCourseCollection.find({})
