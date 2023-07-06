@@ -45,14 +45,12 @@ async function run() {
     await client.connect();
     console.log("DB connected Successfully");
     const database = client.db('educationalLiveSolu');
-
     const usersCollection = database.collection('users');
-    const reviewCollection = database.collection('review');
     const courseCollection = database.collection('myCourse');
   const addCourseCollection = database.collection("addCourse");
   const applyForTeacherCollection = database.collection("applyForTeacher");
   const ContactCollection = database.collection('contact');
-  const  ratingCollection = database.collection('rating');
+  const  ratingCollection = database.collection('reviews');
 
 
  
@@ -73,7 +71,15 @@ async function run() {
     const orders = await cursor.toArray();
     res.send(orders)
   })
-
+  app.get('/myCourses', async(req, res)=>{
+    const email = req.query.teacherEmail;
+    console.log('ss email', email);
+    const query= {email: email};
+    const cursor= courseCollection.find(query);
+    const orders = await cursor.toArray();
+    res.send(orders)
+  })
+ 
  
 /*   app.get('/addCourse', (req, res) => {
     addCourseCollection.find({})
@@ -92,8 +98,14 @@ async function run() {
       res.json(store);
     });
 
+    app.get('/contact', async (req, res) => {
+      const store = await ContactCollection.find().toArray();
+      res.send(store);
+    });
 
-    app.post('/review', async (req, res) => {
+
+
+/*     app.post('/review', async (req, res) => {
       const data = req.body;
       const store = await reviewCollection.insertOne(data);
       res.json(store);
@@ -101,7 +113,7 @@ async function run() {
     app.get('/review', async (req, res) => {
       const store = await reviewCollection.find().toArray();
       res.send(store);
-    });
+    }); */
     app.post('/users', async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
