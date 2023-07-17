@@ -42,19 +42,18 @@ async function verifyToken(req, res, next) {
 async function run() {
   try {
     
-    await client.connect();
-    console.log("DB connected Successfully");
-    const database = client.db('educationalLiveSolu');
-
-    const usersCollection = database.collection('users');
-    const reviewCollection = database.collection('review');
-    const courseCollection = database.collection('myCourse');
+  await client.connect();
+  console.log("DB connected Successfully");
+  const database = client.db('educationalLiveSolu');
+  const usersCollection = database.collection('users');
+  const courseCollection = database.collection('myCourse');
   const addCourseCollection = database.collection("addCourse");
   const applyForTeacherCollection = database.collection("applyForTeacher");
   const ContactCollection = database.collection('contact');
+  const  ratingCollection = database.collection('reviews');
 
 
-
+ 
 
   app.post('/addCourse', (req, res) => {
     const teacher = req.body;
@@ -72,6 +71,27 @@ async function run() {
     const orders = await cursor.toArray();
     res.send(orders)
   })
+  app.get('/myCourses', async(req, res)=>{
+    const email = req.query.teacherEmail;
+    console.log('ss email', email);
+    const query= {email: email};
+    const cursor= courseCollection.find(query);
+    const orders = await cursor.toArray();
+    res.send(orders)
+  })
+
+ 
+  app.put('/myCoursed/:id', verifyToken, async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+
+    console.log(filter);
+    const updateDoc = { $set: { isRating: 'false' } };
+    const result = await courseCollection.updateOne(filter, updateDoc);
+    console.log('result', result)
+    res.send(result);
+  });
+ 
 /*   app.get('/addCourse', (req, res) => {
     addCourseCollection.find({})
         .toArray((err, documents) => {
@@ -82,6 +102,10 @@ async function run() {
       const store = await addCourseCollection.find().toArray();
       res.send(store);
     });
+    app.get('/applyTeacherList', async (req, res) => {
+      const store = await applyForTeacherCollection.find().toArray();
+      res.send(store);
+    });
 
     app.post('/contact', async (req, res) => {
       const data = req.body;
@@ -89,8 +113,14 @@ async function run() {
       res.json(store);
     });
 
+    app.get('/contact', async (req, res) => {
+      const store = await ContactCollection.find().toArray();
+      res.send(store);
+    });
 
-    app.post('/review', async (req, res) => {
+
+
+/*     app.post('/review', async (req, res) => {
       const data = req.body;
       const store = await reviewCollection.insertOne(data);
       res.json(store);
@@ -98,7 +128,7 @@ async function run() {
     app.get('/review', async (req, res) => {
       const store = await reviewCollection.find().toArray();
       res.send(store);
-    });
+    }); */
     app.post('/users', async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
@@ -208,6 +238,16 @@ app.post('/applyForTeacher', (req, res) => {
     res.send(result);
   });
 
+  app.post('/courseRating', async (req, res) => {
+    const data = req.body;
+    const store = await ratingCollection.insertOne(data);
+    res.json(store);
+  });
+
+  app.get('/courseRating', async (req, res) => {
+    const store = await ratingCollection.find().toArray();
+    res.send(store);
+  });
   
 
 
