@@ -42,11 +42,11 @@ async function verifyToken(req, res, next) {
 async function run() {
   try {
     
-    await client.connect();
-    console.log("DB connected Successfully");
-    const database = client.db('educationalLiveSolu');
-    const usersCollection = database.collection('users');
-    const courseCollection = database.collection('myCourse');
+  await client.connect();
+  console.log("DB connected Successfully");
+  const database = client.db('educationalLiveSolu');
+  const usersCollection = database.collection('users');
+  const courseCollection = database.collection('myCourse');
   const addCourseCollection = database.collection("addCourse");
   const applyForTeacherCollection = database.collection("applyForTeacher");
   const ContactCollection = database.collection('contact');
@@ -79,7 +79,18 @@ async function run() {
     const orders = await cursor.toArray();
     res.send(orders)
   })
+
  
+  app.put('/myCoursed/:id', verifyToken, async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+
+    console.log(filter);
+    const updateDoc = { $set: { isRating: 'false' } };
+    const result = await courseCollection.updateOne(filter, updateDoc);
+    console.log('result', result)
+    res.send(result);
+  });
  
 /*   app.get('/addCourse', (req, res) => {
     addCourseCollection.find({})
@@ -89,6 +100,10 @@ async function run() {
     }) */
     app.get('/addCourse', async (req, res) => {
       const store = await addCourseCollection.find().toArray();
+      res.send(store);
+    });
+    app.get('/applyTeacherList', async (req, res) => {
+      const store = await applyForTeacherCollection.find().toArray();
       res.send(store);
     });
 
