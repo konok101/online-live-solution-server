@@ -117,18 +117,15 @@ async function run() {
       const store = await ContactCollection.find().toArray();
       res.send(store);
     });
-
-
-
-/*     app.post('/review', async (req, res) => {
-      const data = req.body;
-      const store = await reviewCollection.insertOne(data);
-      res.json(store);
+    app.delete('/contactList/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query= { _id: new ObjectId(id) };
+      const result = await ContactCollection.deleteOne(query);
+      res.send(result);
     });
-    app.get('/review', async (req, res) => {
-      const store = await reviewCollection.find().toArray();
-      res.send(store);
-    }); */
+
+
+ 
     app.post('/users', async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
@@ -163,9 +160,11 @@ async function run() {
       res.json({ admin: isAdmin });
     });
 
-    app.put('/users/admin/:email', verifyToken, async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
+    app.put('/users/admin/:id', verifyToken, async (req, res) => {
+     /*  const email = req.params.email;
+      const filter = { email: email }; */
+      const email = req.params.id;
+      const filter= { _id: new ObjectId(email) };
 
       console.log(filter);
       const updateDoc = { $set: { role: 'admin' } };
@@ -173,9 +172,11 @@ async function run() {
       res.json(result);
     });
 
-    app.delete('/users/:email', verifyToken, async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
+    app.delete('/users/:id', verifyToken, async (req, res) => {
+   /*    const email = req.params.email; */
+ /*      const filter = { email: email }; */
+      const email = req.params.id;
+      const filter= { _id: new ObjectId(email) };
       const result = await usersCollection.deleteOne(filter);
       res.json(result);
     });
@@ -208,6 +209,13 @@ app.post('/applyForTeacher', (req, res) => {
       .then(result => {
           res.send(result.insertedCount > 0)
       })
+});
+
+app.delete('/applyForTeacher/:id', verifyToken, async (req, res) => {
+  const id = req.params.id;
+  const query= { _id: new ObjectId(id) };
+  const result = await applyForTeacherCollection.deleteOne(query);
+  res.send(result);
 });
 
 
