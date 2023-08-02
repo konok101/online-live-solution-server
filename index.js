@@ -64,6 +64,43 @@ async function run() {
         })
   });
 
+
+
+  app.put('/courseUpdate/:id', async (req, res) => {
+    const id = req.params.id;
+    const updatedValue = req.body
+    const filter = { _id: new ObjectId(id) }
+    const option = { upsert: true };
+    const updatedDoc = {
+      $set: {
+        teacherName: updatedValue?.nameUpdate,
+        imageURL: updatedValue?.imageUrls,
+        price: updatedValue?.priceUpdate,
+        couseName: updatedValue?.courseNameUpdate,
+        hours: updatedValue?.hoursUpdate,
+        teachingArea: updatedValue?.teachinAreaUpdate,
+        socialUrl: updatedValue?.socialUrlUpdate,
+
+     
+      
+      }
+
+    }
+   
+    const result = await addCourseCollection.updateOne(filter, updatedDoc, option);
+    res.send({ status: "Updated",result })
+  })
+
+    app.delete('/courseUpdate/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query= { _id: new ObjectId(id) };
+      const result = await addCourseCollection.deleteOne(query);
+      res.send(result);
+    });
+
+
+
+
   app.get('/myCourse', async(req, res)=>{
     const email = req.query.email;
     const query= {email: email};
@@ -91,13 +128,8 @@ async function run() {
     console.log('result', result)
     res.send(result);
   });
+
  
-/*   app.get('/addCourse', (req, res) => {
-    addCourseCollection.find({})
-        .toArray((err, documents) => {
-            res.send(documents);
-        })
-    }) */
     app.get('/addCourse', async (req, res) => {
       const store = await addCourseCollection.find().toArray();
       res.send(store);
